@@ -1,0 +1,71 @@
+name: stockpro
+description: "A new Flutter project."
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.2.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons:
+  firebase_core:
+  firebase_auth:
+  google_sign_in:
+  # state management
+  flutter_bloc:
+
+  # Database
+  floor:
+  hive:
+  hive_flutter:
+
+  # routing
+  auto_route:
+
+  # networking
+  retrofit:
+  dio:
+
+  # comparing dart objects
+  equatable:
+
+  # service locator
+  get_it:
+
+  fpdart:
+
+  # core
+  cached_network_image:
+  intl:
+  flutter_hooks:
+
+  # ui
+  shimmer:
+  flutter_svg:
+  ionicons:
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  floor_generator:
+  retrofit_generator:
+  build_runner:
+  hive_generator:
+
+  # rules and activating additional ones.
+  flutter_lints:
+
+flutter:
+  uses-material-design: true
+
+  fonts:
+    - family: Muli
+      fonts:
+        - asset: assets/fonts/muli/Muli.ttf
+        - asset: assets/fonts/muli/Muli-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/muli/Muli-Light.ttf
+          weight: 300

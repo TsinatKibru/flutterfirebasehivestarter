@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -6,6 +7,7 @@ import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:get_it/get_it.dart';
+import 'package:stockpro/features/auth/data/datasource/user_remote_datasource.dart';
 
 import 'features/auth/data/datasource/auth_remote_data_source.dart';
 import 'features/auth/data/datasource/auth_local_data_source.dart';
@@ -37,6 +39,7 @@ Future<void> _initCore() async {
   // Firebase
   await Firebase.initializeApp();
   sl.registerLazySingleton<FirebaseAuth>(() => FirebaseAuth.instance);
+  sl.registerLazySingleton<FirebaseFirestore>(() => FirebaseFirestore.instance);
 
   // Network
   sl.registerSingleton<Dio>(Dio());
@@ -51,10 +54,14 @@ void _initAuth() {
     () => AuthLocalDataSourceImpl(Hive.box<UserModel>('user_box')),
   );
 
+  sl.registerLazySingleton<UserRemoteDataSource>(
+    () => UserRemoteDataSourceImpl(firestore: sl<FirebaseFirestore>()),
+  );
+
   // Repository
   sl.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(
-        sl<AuthRemoteDataSource>(), sl<AuthLocalDataSource>()),
+    () => AuthRepositoryImpl(sl<AuthRemoteDataSource>(),
+        sl<AuthLocalDataSource>(), sl<UserRemoteDataSource>()),
   );
 
   // Use Cases

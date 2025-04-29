@@ -3,28 +3,62 @@ import 'package:stockpro/core/errors/exception.dart';
 import 'package:stockpro/core/errors/failure.dart';
 import 'package:stockpro/features/auth/data/datasource/auth_local_data_source.dart';
 import 'package:stockpro/features/auth/data/datasource/auth_remote_data_source.dart';
+import 'package:stockpro/features/auth/data/datasource/user_remote_datasource.dart';
 import 'package:stockpro/features/auth/data/model/user_model.dart';
 import 'package:stockpro/features/auth/domain/entities/user_entity.dart';
 import 'package:stockpro/features/auth/domain/repositories/auth_repository.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  final AuthRemoteDataSource remoteDataSource;
+  final AuthRemoteDataSource authRemoteDataSource;
   final AuthLocalDataSource localDataSource;
+  final UserRemoteDataSource userRemoteDataSource;
 
-  AuthRepositoryImpl(this.remoteDataSource, this.localDataSource);
+  AuthRepositoryImpl(this.authRemoteDataSource, this.localDataSource,
+      this.userRemoteDataSource);
+
+  // @override
+  // Future<Either<Failure, UserEntity?>> signInWithEmailAndPassword(
+  //     String email, String password) async {
+  //   try {
+  //     await authRemoteDataSource.signIn(email, password);
+  //     final userId = await authRemoteDataSource.getUserId();
+  //     if (userId != null) {
+  //       await localDataSource.cacheUser(
+  //         UserModel(id: userId, email: email, lastLogin: DateTime.now()),
+  //       );
+
+  //       return right(
+  //           UserEntity(id: userId, email: email, lastLogin: DateTime.now()));
+  //     }
+
+  //     return right(UserEntity(id: "", email: email, lastLogin: DateTime.now()));
+  //   } on AuthException catch (e) {
+  //     return left(AuthFailure(e.message));
+  //   } on ServerException catch (e) {
+  //     return left(ServerFailure(e.message));
+  //   }
+  // }
 
   @override
   Future<Either<Failure, UserEntity?>> signInWithEmailAndPassword(
       String email, String password) async {
     try {
-      await remoteDataSource.signIn(email, password);
-      final userId = await remoteDataSource.getUserId();
+      await authRemoteDataSource.signIn(email, password);
+      final userId = await authRemoteDataSource.getUserId();
       if (userId != null) {
-        await localDataSource.cacheUser(
-          UserModel(id: userId, email: email, lastLogin: DateTime.now()),
+        final userModel = UserModel(
+          id: userId,
+          email: email,
+          lastLogin: DateTime.now(),
         );
-        return right(
-            UserEntity(id: userId, email: email, lastLogin: DateTime.now()));
+
+        // Cache locally
+        await localDataSource.cacheUser(userModel);
+
+        // Register to Firestore (if not exists)
+        await userRemoteDataSource.createUser(userModel);
+
+        return right(userModel.toEntity());
       }
 
       return right(UserEntity(id: "", email: email, lastLogin: DateTime.now()));
@@ -39,14 +73,22 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<Failure, UserEntity?>> signUpWithEmailAndPassword(
       String email, String password) async {
     try {
-      await remoteDataSource.signUp(email, password);
-      final userId = await remoteDataSource.getUserId();
+      await authRemoteDataSource.signUp(email, password);
+      final userId = await authRemoteDataSource.getUserId();
       if (userId != null) {
-        await localDataSource.cacheUser(
-          UserModel(id: userId, email: email, lastLogin: DateTime.now()),
+        final userModel = UserModel(
+          id: userId,
+          email: email,
+          lastLogin: DateTime.now(),
         );
-        return right(
-            UserEntity(id: userId, email: email, lastLogin: DateTime.now()));
+
+        // Cache locally
+        await localDataSource.cacheUser(userModel);
+
+        // Register to Firestore (if not exists)
+        await userRemoteDataSource.createUser(userModel);
+
+        return right(userModel.toEntity());
       }
 
       return right(UserEntity(id: "", email: email, lastLogin: DateTime.now()));
@@ -65,7 +107,7 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, Unit>> signOut() async {
     try {
-      await remoteDataSource.signOut();
+      await authRemoteDataSource.signOut();
       await localDataSource.clearCache();
       return right(unit);
     } on ServerException catch (e) {
@@ -82,7 +124,7 @@ class AuthRepositoryImpl implements AuthRepository {
       }
 
       try {
-        await remoteDataSource.isSignedIn();
+        await authRemoteDataSource.isSignedIn();
         return right(true);
       } on AuthException {
         return right(false);
@@ -104,7 +146,7 @@ class AuthRepositoryImpl implements AuthRepository {
       }
 
       try {
-        final userId = await remoteDataSource.getUserId();
+        final userId = await authRemoteDataSource.getUserId();
         return right(userId);
       } on AuthException {
         return right(null);
@@ -128,7 +170,7 @@ class AuthRepositoryImpl implements AuthRepository {
       }
 
       try {
-        final remoteUser = await remoteDataSource.getUser();
+        final remoteUser = await authRemoteDataSource.getUser();
         if (remoteUser != null) {
           await localDataSource.cacheUser(
             UserModel(

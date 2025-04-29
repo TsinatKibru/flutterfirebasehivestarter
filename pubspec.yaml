@@ -13,6 +13,7 @@ dependencies:
   cupertino_icons:
   firebase_core:
   firebase_auth:
+  cloud_firestore:
   google_sign_in:
   # state management
   flutter_bloc:

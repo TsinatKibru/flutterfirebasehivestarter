@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive/hive.dart';
 import '../../domain/entities/user_entity.dart';
 
@@ -47,6 +48,27 @@ class UserModel {
       name: name,
       photoUrl: photoUrl,
       lastLogin: lastLogin,
+    );
+  }
+
+  /// Replaces your old `static Future fromMap(...)`:
+  factory UserModel.fromMap(Map<String, dynamic> map) {
+    final raw = map['lastLogin'];
+    DateTime parsedDate;
+    if (raw is Timestamp) {
+      parsedDate = raw.toDate();
+    } else if (raw is String) {
+      parsedDate = DateTime.parse(raw);
+    } else {
+      throw FormatException('Unsupported lastLogin format: \$raw');
+    }
+
+    return UserModel(
+      id: map['id'] as String,
+      email: map['email'] as String,
+      name: map['name'] as String?,
+      photoUrl: map['photoUrl'] as String?,
+      lastLogin: parsedDate,
     );
   }
 }

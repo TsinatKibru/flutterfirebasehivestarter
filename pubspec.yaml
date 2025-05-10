@@ -15,6 +15,8 @@ dependencies:
   firebase_auth:
   cloud_firestore:
   google_sign_in:
+  cloudinary_flutter: ^1.0.0
+  cloudinary_url_gen: ^1.0.0
   # state management
   flutter_bloc:
 
@@ -47,6 +49,8 @@ dependencies:
   shimmer:
   flutter_svg:
   ionicons:
+  image_picker: ^1.1.2
+  flutter_typeahead: ^5.2.0
 
 dev_dependencies:
   flutter_test:

@@ -1,0 +1,4 @@
+enum InventoryItemCardVariant {
+  compact,
+  detailed,
+}

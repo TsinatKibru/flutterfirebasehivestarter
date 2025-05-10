@@ -16,6 +16,16 @@ ThemeData theme() {
       bodyLarge: TextStyle(color: Color(0xFF121212)),
       bodyMedium: TextStyle(color: Color(0xFF6E6E6E)),
     ),
+    scrollbarTheme: ScrollbarThemeData(
+      thumbVisibility:
+          WidgetStateProperty.all(true), // Always show the scrollbar
+      trackVisibility: WidgetStateProperty.all(true), // Show track (optional)
+      thickness: WidgetStateProperty.all(12), // Adjust thickness
+      radius: const Radius.circular(4), // Round corners
+      crossAxisMargin: 2, // Margin from the edge
+      minThumbLength: 50, // Minimum length of the scrollbar thumb
+      interactive: true, // Allow interactive dragging
+    ),
   );
 }
 

@@ -76,6 +76,7 @@ class _InventoryState extends State<Inventory> {
               },
             ),
       floatingActionButton: FloatingActionButton(
+        heroTag: null,
         onPressed: () {
           // Implement add new item functionality here
           print('Add new item');

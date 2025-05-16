@@ -33,7 +33,8 @@ class InventoryItemList extends StatelessWidget {
       String? categoryId, List<CategoryEntity> categories) {
     final category = categories.firstWhere(
       (cat) => cat.id == categoryId,
-      orElse: () => CategoryEntity(id: 'Uncategorized', name: 'Uncategorized'),
+      orElse: () =>
+          const CategoryEntity(id: 'Uncategorized', name: 'Uncategorized'),
     );
     return category.name.toUpperCase() ?? 'Uncategorized';
   }
@@ -105,7 +106,7 @@ class InventoryItemList extends StatelessWidget {
                 _groupByCategory(filteredItems, categories);
 
             if (filteredItems.isEmpty) {
-              return LoadingErrorWidget(
+              return const LoadingErrorWidget(
                 icon: Icons.inbox,
                 message: 'No items found',
               );

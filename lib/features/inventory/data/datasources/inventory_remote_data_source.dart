@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:stockpro/core/constants/secrets.dart';
 import 'package:stockpro/core/errors/exception.dart';
+import 'package:stockpro/core/utils/user_utils.dart';
 import 'package:stockpro/features/inventory/data/models/inventory_item_model.dart';
 
 abstract class InventoryRemoteDataSource {
@@ -66,21 +68,42 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
     }
   }
 
-  @override
-  Stream<List<InventoryItemModel>> watchItems() {
-    try {
-      return firestore
-          .collection('inventory')
-          .orderBy('createdAt', descending: true)
-          .snapshots()
-          .map((snapshot) {
-        return snapshot.docs
-            .map((doc) => InventoryItemModel.fromMap(doc.data(), doc.id))
-            .toList();
-      });
-    } catch (e) {
-      throw ServerException('Failed to stream inventory items: $e');
+  // @override
+  // Stream<List<InventoryItemModel>> watchItems() {
+  //   try {
+  //     return firestore
+  //         .collection('inventory')
+  //         .orderBy('createdAt', descending: true)
+  //         .snapshots()
+  //         .map((snapshot) {
+  //       return snapshot.docs
+  //           .map((doc) => InventoryItemModel.fromMap(doc.data(), doc.id))
+  //           .toList();
+  //     });
+  //   } catch (e) {
+  //     throw ServerException('Failed to stream inventory items: $e');
+  //   }
+  // }
+  Stream<List<InventoryItemModel>> watchItems() async* {
+    final companyId = await getCurrentUserCompanyId();
+
+    if (companyId == null) {
+      print('⚠️ Cannot stream items without companyId.');
+      yield [];
+      return;
     }
+
+    yield* FirebaseFirestore.instance
+        .collection('inventory')
+        .where('companyId', isEqualTo: companyId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      print('📦 Inventory snapshot with ${snapshot.docs.length} items');
+      return snapshot.docs
+          .map((doc) => InventoryItemModel.fromMap(doc.data(), doc.id))
+          .toList();
+    });
   }
 
   Future<String?> uploadImageAndGetUrl(String? localImagePath) async {

@@ -17,6 +17,7 @@ class OrderModel extends OrderEntity {
     required super.isStocked,
     super.productImageUrl,
     super.productWarehouse, // Include the new optional field in the constructor
+    super.companyId, // Include the new optional field in the constructor
   });
 
   OrderModel copyWith({
@@ -34,6 +35,7 @@ class OrderModel extends OrderEntity {
     bool? isStocked,
     String? productImageUrl,
     String? productWarehouse, // Include the new optional field in copyWith
+    String? companyId, // Include the new optional field in copyWith
   }) {
     return OrderModel(
       id: id ?? this.id,
@@ -51,6 +53,7 @@ class OrderModel extends OrderEntity {
       productImageUrl: productImageUrl ?? this.productImageUrl,
       productWarehouse:
           productWarehouse ?? this.productWarehouse, // Assign the new field
+      companyId: companyId ?? this.companyId, // Assign the new field
     );
   }
 
@@ -71,6 +74,7 @@ class OrderModel extends OrderEntity {
       isStocked: entity.isStocked,
       productImageUrl: entity.productImageUrl,
       productWarehouse: entity.productWarehouse, // Map the new field
+      companyId: entity.companyId, // Map the new field
     );
   }
 
@@ -106,6 +110,7 @@ class OrderModel extends OrderEntity {
       productImageUrl: data['productImageUrl'],
       productWarehouse:
           data['productWarehouse'], // Retrieve the new field from Firestore
+      companyId: data['companyId'], // Retrieve the new field from Firestore
     );
   }
 
@@ -125,6 +130,7 @@ class OrderModel extends OrderEntity {
       'productImageUrl': productImageUrl,
       'productWarehouse':
           productWarehouse, // Include the new field in Firestore document
+      'companyId': companyId, // Include the new field in Firestore document
     };
   }
 
@@ -146,12 +152,13 @@ class OrderModel extends OrderEntity {
       productImageUrl: productImageUrl,
       productWarehouse:
           productWarehouse, // Map the new field back to the entity
+      companyId: companyId, // Map the new field back to the entity
     );
   }
 
   @override
   String toString() {
-    return 'OrderModel(id: $id, customerName: $customerName, productId: $productId, productSku: $productSku, productName: $productName, quantity: $quantity, category: $category, date: $date, price: $price, note: $note, type: $type, isStocked: $isStocked, productImageUrl: $productImageUrl, productWarehouse: $productWarehouse)';
+    return 'OrderModel(id: $id, customerName: $customerName, productId: $productId, productSku: $productSku, productName: $productName, quantity: $quantity, category: $category, date: $date, price: $price, note: $note, type: $type, isStocked: $isStocked, productImageUrl: $productImageUrl, productWarehouse: $productWarehouse, companyId: $companyId)';
   }
 
   @override
@@ -172,7 +179,8 @@ class OrderModel extends OrderEntity {
         other.type == type &&
         other.isStocked == isStocked &&
         other.productImageUrl == productImageUrl &&
-        other.productWarehouse == productWarehouse; // Compare the new field
+        other.productWarehouse == productWarehouse && // Compare the new field
+        other.companyId == companyId; // Compare the new field
   }
 
   @override
@@ -190,5 +198,6 @@ class OrderModel extends OrderEntity {
       type.hashCode ^
       isStocked.hashCode ^
       productImageUrl.hashCode ^
-      productWarehouse.hashCode; // Include the new field in hashCode
+      productWarehouse.hashCode ^ // Include the new field in hashCode
+      companyId.hashCode; // Include the new field in hashCode
 }

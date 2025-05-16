@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stockpro/core/common/widgets/analytics_page.dart';
 import 'package:stockpro/core/common/widgets/app_bottom_sheet.dart';
-import 'package:stockpro/features/auth/presentation/bloc/auth/auth_bloc.dart';
 import 'package:stockpro/features/category/presentation/bloc/category_bloc.dart';
 import 'package:stockpro/features/category/presentation/bloc/category_event.dart';
 import 'package:stockpro/features/category/presentation/bloc/category_state.dart';
@@ -48,10 +48,8 @@ class _InventoryListPageState extends State<InventoryListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: InventoryAppBar(
-        onSignOut: () => context.read<AuthBloc>().add(SignOutEvent()),
-      ),
-      drawer: const InventoryDrawer(),
+      appBar: InventoryAppBar(),
+      drawer: InventoryDrawer(),
       body: BlocBuilder<CategoryBloc, CategoryState>(
         builder: (context, categoryState) {
           return InventoryItemList(

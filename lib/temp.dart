@@ -30,3 +30,9 @@
 // May 4 23:02:58 smtp2 postfix/smtp[2073255]: 032F62C229B: to=<behailu.adugna@insa.gov.et>, relay=smtp.insa.gov.et[102.218.2.10]:587, delay=0.83, delays=0.09/0.02/0.45/0.28, dsn=2.6.0, status=sent (250 2.6.0 Message received)
 // May 4 23:02:58 smtp2 postfix/smtp[2073255]: 032F62C229B: to=<hanibal@insa.gov.et>, relay=smtp.insa.gov.et[102.218.2.10]:587, delay=0.83, delays=0.09/0.02/0.45/0.28, dsn=2.6.0, status=sent (250 2.6.0 Message received)
 // May 4 23:02:58 smtp2 postfix/qmgr[2574125]: 032F62C229B: removed
+
+
+
+
+
+

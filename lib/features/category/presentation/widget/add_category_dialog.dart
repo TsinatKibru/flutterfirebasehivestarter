@@ -1,77 +1,17 @@
-// import 'package:flutter/material.dart';
-// import 'package:flutter_bloc/flutter_bloc.dart';
-// import 'package:stockpro/features/category/domain/entities/category_entity.dart';
-// import 'package:stockpro/features/category/presentation/bloc/category_bloc.dart';
-// import 'package:stockpro/features/category/presentation/bloc/category_event.dart';
-
-// class AddCategoryDialog extends StatefulWidget {
-//   final CategoryEntity? item;
-
-//   const AddCategoryDialog({super.key, this.item});
-
-//   @override
-//   State<AddCategoryDialog> createState() => _AddCategoryDialogState();
-// }
-
-// class _AddCategoryDialogState extends State<AddCategoryDialog> {
-//   final TextEditingController _controller = TextEditingController();
-//   bool _isSubmitting = false;
-
-//   @override
-//   void dispose() {
-//     _controller.dispose();
-//     super.dispose();
-//   }
-
-//   void _submit() {
-//     final name = _controller.text.trim();
-//     if (name.isEmpty) return;
-
-//     setState(() => _isSubmitting = true);
-
-//     final bloc = context.read<CategoryBloc>();
-//     bloc.add(AddNewCategory(CategoryEntity(
-//       name: name,
-//       id: widget.item?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-//     )));
-
-//     Navigator.of(context).pop();
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return AlertDialog(
-//       title: const Text('Add Category'),
-//       content: TextField(
-//         controller: _controller,
-//         decoration: const InputDecoration(
-//           labelText: 'Category Name',
-//         ),
-//         autofocus: true,
-//         onSubmitted: (_) => _submit(),
-//       ),
-//       actions: [
-//         TextButton(
-//           onPressed: _isSubmitting ? null : () => Navigator.of(context).pop(),
-//           child: const Text('Cancel'),
-//         ),
-//         ElevatedButton(
-//           onPressed: _isSubmitting ? null : _submit,
-//           child: const Text('Add'),
-//         ),
-//       ],
-//     );
-//   }
-// }
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path/path.dart' as p;
+import 'package:stockpro/core/common/entities/user_entity.dart';
 import 'package:stockpro/core/utils/multi_source_image_picker_.dart';
+import 'package:stockpro/core/utils/permission_util.dart';
+import 'package:stockpro/features/auth/presentation/bloc/auth/auth_bloc.dart';
 import 'package:stockpro/features/category/domain/entities/category_entity.dart';
 import 'package:stockpro/features/category/presentation/bloc/category_bloc.dart';
 import 'package:stockpro/features/category/presentation/bloc/category_event.dart';
+import 'package:stockpro/features/company/domain/entities/company.dart';
+import 'package:stockpro/features/company/presentation/bloc/company_bloc.dart';
 import 'package:stockpro/features/inventory/presentation/widgets/image_inventory.dart';
 
 class AddCategoryPage extends StatefulWidget {
@@ -87,10 +27,13 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
   final TextEditingController _controller = TextEditingController();
   bool _isSubmitting = false;
   File? _pickedImage;
+  Company? company;
+  UserEntity? currentUser;
 
   @override
   void initState() {
     super.initState();
+
     if (widget.item != null) {
       _controller.text = widget.item!.name;
     }
@@ -112,6 +55,11 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
   }
 
   void _submit() {
+    if (!PermissionUtil.isAdmin(currentUser)) {
+      PermissionUtil.showNoPermissionMessage(context);
+      return; // Exit the function if not admin
+    }
+
     final name = _controller.text.trim();
     if (name.isEmpty) return;
 
@@ -120,7 +68,8 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
     final category = CategoryEntity(
       id: widget.item?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
       name: name,
-      imageUrl: _pickedImage?.uri.toString(),
+      imageUrl: _pickedImage?.uri.toString() ?? widget.item?.imageUrl,
+      companyId: company?.id,
     );
 
     final bloc = context.read<CategoryBloc>();
@@ -135,9 +84,25 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final companyState = context.watch<CompanyBloc>().state;
+    final authState = context.watch<AuthBloc>().state;
+    currentUser = authState is Authenticated ? authState.user : null;
+
+    company = (companyState is CompanyCreated)
+        ? companyState.company
+        : (companyState is CompanyBySecretLoaded)
+            ? companyState.company
+            : (companyState is CompanyLoaded)
+                ? companyState.company
+                : null;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.item == null ? 'Add Category' : 'Edit Category'),
+        leading: IconButton(
+          icon: Icon(widget.item != null ? Icons.arrow_back_ios : Icons.close),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),

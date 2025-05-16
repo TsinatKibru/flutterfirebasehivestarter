@@ -3,12 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
+import 'package:stockpro/core/common/entities/user_entity.dart';
 
 import 'package:stockpro/core/common/widgets/app_text_form_field.dart';
 import 'package:stockpro/core/utils/multi_source_image_picker_.dart';
+import 'package:stockpro/core/utils/permission_util.dart';
 import 'package:stockpro/core/utils/section_divider.dart';
+import 'package:stockpro/features/auth/presentation/bloc/auth/auth_bloc.dart';
 import 'package:stockpro/features/category/presentation/bloc/category_bloc.dart';
 import 'package:stockpro/features/category/presentation/bloc/category_state.dart';
+import 'package:stockpro/features/company/domain/entities/company.dart';
+import 'package:stockpro/features/company/presentation/bloc/company_bloc.dart';
 import 'package:stockpro/features/inventory/domain/entities/inventory_item_entity.dart';
 import 'package:stockpro/features/inventory/presentation/bloc/inventory_bloc.dart';
 import 'package:stockpro/features/inventory/presentation/widgets/image_inventory.dart';
@@ -35,10 +40,13 @@ class _AddEditInventoryPageState extends State<AddEditInventoryPage> {
   String? _selectedCategoryId;
   String? _selectedWarehouseId;
   File? _pickedImage;
+  Company? company;
+  UserEntity? currentUser;
 
   @override
   void initState() {
     super.initState();
+
     final item = widget.item;
     _nameController = TextEditingController(text: item?.name ?? '');
     _quantityController =
@@ -73,6 +81,11 @@ class _AddEditInventoryPageState extends State<AddEditInventoryPage> {
   }
 
   void _submitForm() {
+    if (!PermissionUtil.isAdmin(currentUser)) {
+      PermissionUtil.showNoPermissionMessage(context);
+      return; // Exit the function if not admin
+    }
+
     if (!_formKey.currentState!.validate()) return;
 
     if (_selectedCategoryId == null || _selectedWarehouseId == null) {
@@ -93,6 +106,7 @@ class _AddEditInventoryPageState extends State<AddEditInventoryPage> {
         categoryId: _selectedCategoryId!,
         warehouseId: _selectedWarehouseId!,
         barcode: _skuController.text.trim(),
+        companyId: company?.id,
         imageUrl: _pickedImage?.uri.toString() ?? widget.item?.imageUrl);
 
     final bloc = context.read<InventoryBloc>();
@@ -104,6 +118,17 @@ class _AddEditInventoryPageState extends State<AddEditInventoryPage> {
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.item != null;
+    final authState = context.watch<AuthBloc>().state;
+    currentUser = authState is Authenticated ? authState.user : null;
+    final companyState = context.watch<CompanyBloc>().state;
+    print("ocmpanyState: ${companyState}");
+    company = (companyState is CompanyCreated)
+        ? companyState.company
+        : (companyState is CompanyBySecretLoaded)
+            ? companyState.company
+            : (companyState is CompanyLoaded)
+                ? companyState.company
+                : null;
 
     return Scaffold(
       appBar: AppBar(

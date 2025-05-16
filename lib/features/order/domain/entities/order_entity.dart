@@ -13,6 +13,7 @@ class OrderEntity {
   final bool isStocked;
   final String? productImageUrl; // Optional product image URL
   final String? productWarehouse; // New optional field for product warehouse
+  final String? companyId; // New optional field for company ID
 
   OrderEntity({
     required this.id,
@@ -29,6 +30,7 @@ class OrderEntity {
     required this.isStocked,
     this.productImageUrl,
     this.productWarehouse, // Initialize the new optional field
+    this.companyId, // Initialize the new optional field
   }) : date = date ?? DateTime.now();
 
   OrderEntity copyWith({
@@ -46,6 +48,7 @@ class OrderEntity {
     bool? isStocked,
     String? productImageUrl,
     String? productWarehouse,
+    String? companyId, // Include the new optional field in copyWith
   }) {
     return OrderEntity(
       id: id ?? this.id,
@@ -62,6 +65,7 @@ class OrderEntity {
       isStocked: isStocked ?? this.isStocked,
       productImageUrl: productImageUrl ?? this.productImageUrl,
       productWarehouse: productWarehouse ?? this.productWarehouse,
+      companyId: companyId ?? this.companyId, // Assign the new field
     );
   }
 
@@ -81,7 +85,8 @@ class OrderEntity {
         'type: $type, '
         'isStocked: $isStocked, '
         'productImageUrl: $productImageUrl, '
-        'productWarehouse: $productWarehouse' // Include the new field in toString
+        'productWarehouse: $productWarehouse, ' // Include the new field in toString
+        'companyId: $companyId' // Include the new field in toString
         '}';
   }
 }

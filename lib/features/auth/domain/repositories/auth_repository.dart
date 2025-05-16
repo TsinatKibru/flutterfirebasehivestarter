@@ -2,7 +2,7 @@ import 'package:fpdart/fpdart.dart';
 import 'package:stockpro/core/errors/app_error.dart';
 import 'package:stockpro/core/errors/failure.dart';
 
-import '../entities/user_entity.dart';
+import '../../../../core/common/entities/user_entity.dart';
 
 abstract class AuthRepository {
   Future<Either<Failure, UserEntity?>> signInWithEmailAndPassword(

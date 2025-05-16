@@ -5,6 +5,7 @@ import 'package:stockpro/features/auth/presentation/bloc/auth/auth_bloc.dart';
 import 'package:stockpro/features/auth/presentation/pages/login_screen.dart';
 import 'package:stockpro/features/auth/presentation/widget/auth_button.dart';
 import 'package:stockpro/features/auth/presentation/widget/auth_text_field.dart';
+import 'package:stockpro/root_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -78,9 +79,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     const SizedBox(height: 24),
                     BlocConsumer<AuthBloc, AuthState>(
                       listener: (context, state) {
-                        if (state is AuthError) {
+                        print("signupstate: ${state}");
+                        if (state is AuthSignUpError) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text(state.message)),
+                          );
+                        }
+                        if (state is Authenticated) {
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const RootScreen()),
+                            (route) => false,
                           );
                         }
                       },

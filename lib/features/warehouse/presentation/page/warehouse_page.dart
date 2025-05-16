@@ -5,6 +5,7 @@ import 'package:stockpro/core/common/widgets/common_header.dart';
 import 'package:stockpro/features/inventory/presentation/bloc/inventory_bloc.dart';
 import 'package:stockpro/features/inventory/presentation/widgets/image_inventory.dart';
 import 'package:stockpro/features/inventory/presentation/widgets/inventory_app_bar.dart';
+import 'package:stockpro/features/inventory/presentation/widgets/inventory_drawer.dart';
 import 'package:stockpro/features/inventory/presentation/widgets/inventory_filter_bar.dart';
 import 'package:stockpro/features/warehouse/presentation/bloc/warehouse_bloc.dart';
 import 'package:stockpro/features/warehouse/presentation/bloc/warehouse_state.dart';
@@ -40,7 +41,7 @@ class _WarehousePageState extends State<WarehousePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: InventoryAppBar(),
-      drawer: Drawer(),
+      drawer: InventoryDrawer(),
       body: SafeArea(
         child: Column(
           children: [
@@ -53,6 +54,7 @@ class _WarehousePageState extends State<WarehousePage> {
               },
             ),
             InventoryFilterBar(
+              hint: "Search Warehouses...",
               onSearchChanged: (value) => setState(() => searchQuery = value),
               onSortChanged: (value) => setState(() => sortOrder = value),
             ),

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:stockpro/core/constants/secrets.dart';
 import 'package:stockpro/core/errors/exception.dart';
+import 'package:stockpro/core/utils/user_utils.dart';
 import 'package:stockpro/features/category/data/models/category_model.dart';
 import 'package:http/http.dart' as http;
 
@@ -43,9 +44,29 @@ class CategoryRemoteDataSourceImpl implements CategoryRemoteDataSource {
     await firestore.collection(categoryCollection).doc(categoryId).delete();
   }
 
+  // @override
+  // Stream<List<CategoryModel>> getCategories() {
+  //   return firestore.collection(categoryCollection).snapshots().map(
+  //         (snapshot) => snapshot.docs
+  //             .map((doc) => CategoryModel.fromMap(doc.data(), doc.id))
+  //             .toList(),
+  //       );
+  // }
   @override
-  Stream<List<CategoryModel>> getCategories() {
-    return firestore.collection(categoryCollection).snapshots().map(
+  Stream<List<CategoryModel>> getCategories() async* {
+    final companyId = await getCurrentUserCompanyId();
+
+    if (companyId == null) {
+      print("⚠️ Cannot stream categories without companyId.");
+      yield [];
+      return;
+    }
+
+    yield* firestore
+        .collection(categoryCollection)
+        .where('companyId', isEqualTo: companyId)
+        .snapshots()
+        .map(
           (snapshot) => snapshot.docs
               .map((doc) => CategoryModel.fromMap(doc.data(), doc.id))
               .toList(),

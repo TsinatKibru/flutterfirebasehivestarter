@@ -1,95 +1,14 @@
-// import 'package:flutter/material.dart';
-// import 'package:flutter_bloc/flutter_bloc.dart';
-// import 'package:stockpro/features/auth/presentation/bloc/auth/auth_bloc.dart';
-// import 'package:stockpro/features/auth/presentation/pages/login_screen.dart';
-// import 'package:stockpro/features/category/presentation/page/category_page.dart';
-// import 'package:stockpro/features/inventory/presentation/pages/inventory.dart';
-// import 'package:stockpro/features/inventory/presentation/pages/inventory_list_page.dart';
-// import 'package:stockpro/features/order/presentation/page/order_page.dart';
-// import 'package:stockpro/features/warehouse/presentation/page/warehouse_page.dart';
-
-// class RootScreen extends StatelessWidget {
-//   const RootScreen({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return BlocBuilder<AuthBloc, AuthState>(
-//       builder: (context, state) {
-//         if (state is Authenticated) {
-//           return _MainNavigationWrapper(user: state.user);
-//         } else {
-//           return const LoginScreen();
-//         }
-//       },
-//     );
-//   }
-// }
-
-// class _MainNavigationWrapper extends StatefulWidget {
-//   final dynamic user; // Replace with your User model
-
-//   const _MainNavigationWrapper({required this.user});
-
-//   @override
-//   State<_MainNavigationWrapper> createState() => _MainNavigationWrapperState();
-// }
-
-// class _MainNavigationWrapperState extends State<_MainNavigationWrapper> {
-//   int _currentIndex = 0;
-
-//   final List<Widget> _tabs = [
-//     const InventoryListPage(), // Products feature
-//     const OrdersListPage(),
-//     const CategoryPage(), // Categories feature
-//     const WarehousePage(), // Warehouses feature
-//     const Inventory(), // Users feature
-//   ];
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       body: IndexedStack(
-//         index: _currentIndex,
-//         children: _tabs,
-//       ),
-//       bottomNavigationBar: BottomNavigationBar(
-//         currentIndex: _currentIndex,
-//         onTap: (index) => setState(() => _currentIndex = index),
-//         type: BottomNavigationBarType.fixed,
-//         items: const [
-//           BottomNavigationBarItem(
-//             icon: Icon(Icons.inventory_2_outlined),
-//             label: 'Products',
-//           ),
-//           BottomNavigationBarItem(
-//             icon: Icon(Icons.sync),
-//             label: 'Orders',
-//           ),
-//           BottomNavigationBarItem(
-//             icon: Icon(Icons.category_outlined),
-//             label: 'Categories',
-//           ),
-//           BottomNavigationBarItem(
-//             icon: Icon(Icons.warehouse_outlined),
-//             label: 'Warehouses',
-//           ),
-//           BottomNavigationBarItem(
-//             icon: Icon(Icons.people_outline),
-//             label: 'Users',
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stockpro/core/utils/loading_page.dart';
 import 'package:stockpro/features/auth/presentation/bloc/auth/auth_bloc.dart';
 import 'package:stockpro/features/auth/presentation/pages/login_screen.dart';
 import 'package:stockpro/features/category/presentation/page/category_page.dart';
-import 'package:stockpro/features/inventory/presentation/pages/inventory.dart';
+import 'package:stockpro/features/company/presentation/bloc/company_bloc.dart';
+import 'package:stockpro/features/company/presentation/pages/company_selection_page.dart';
 import 'package:stockpro/features/inventory/presentation/pages/inventory_list_page.dart';
 import 'package:stockpro/features/order/presentation/page/order_page.dart';
+import 'package:stockpro/features/users/presentation/page/users_page.dart';
 import 'package:stockpro/features/warehouse/presentation/page/warehouse_page.dart';
 
 class RootScreen extends StatelessWidget {
@@ -100,7 +19,15 @@ class RootScreen extends StatelessWidget {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
         if (state is Authenticated) {
+          context
+              .read<CompanyBloc>()
+              .add(GetCompanyByIdEvent(state.user.companyId ?? ""));
+          if (state.user.companyId == null || state.user.companyId == "") {
+            return CompanySelectionPage(userId: state.user.id);
+          }
           return _MainNavigationWrapper(user: state.user);
+        } else if (state is AuthInitial || state is AuthLoading) {
+          return LoadingPage();
         } else {
           return const LoginScreen();
         }
@@ -127,7 +54,7 @@ class _MainNavigationWrapperState extends State<_MainNavigationWrapper> {
 
     const WarehousePage(), // Warehouses feature
     const CategoryPage(), // Categories feature
-    const Inventory(), // Users feature
+    const UsersPage(), // Users feature
   ];
 
   @override
@@ -187,11 +114,14 @@ class _MainNavigationWrapperState extends State<_MainNavigationWrapper> {
                 label: 'Orders',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.warehouse_outlined),
+                icon: Icon(Icons.location_on_outlined),
                 label: 'Warehouses',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.window_outlined),
+                icon: Icon(
+                  Icons.widgets_outlined,
+                  fill: 0,
+                ),
                 label: 'Categories',
               ),
               BottomNavigationBarItem(

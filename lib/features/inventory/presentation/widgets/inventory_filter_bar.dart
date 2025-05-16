@@ -1,86 +1,17 @@
-// import 'package:flutter/material.dart';
-
-// class InventoryFilterBar extends StatefulWidget {
-//   final ValueChanged<String> onSearchChanged;
-//   final ValueChanged<String> onSortChanged;
-//   final double height;
-
-//   const InventoryFilterBar(
-//       {super.key,
-//       required this.onSearchChanged,
-//       required this.onSortChanged,
-//       this.height = 54.0});
-
-//   @override
-//   State<InventoryFilterBar> createState() => _InventoryFilterBarState();
-// }
-
-// class _InventoryFilterBarState extends State<InventoryFilterBar> {
-//   @override
-//   Widget build(BuildContext context) {
-//     return SizedBox(
-//       // Wrap with SizedBox to control height
-//       height: widget.height, // Adjust this value as needed
-//       child: Padding(
-//         padding: const EdgeInsets.symmetric(
-//             horizontal: 12, vertical: 8), // Adjust vertical padding
-//         child: Row(
-//           children: [
-//             Expanded(
-//               child: TextField(
-//                 decoration: const InputDecoration(
-//                   hintText: 'Search products...',
-//                   prefixIcon: Icon(Icons.search, size: 20), // Smaller icon
-//                   border: OutlineInputBorder(),
-//                   contentPadding: EdgeInsets.symmetric(
-//                       horizontal: 12, vertical: 8), // Smaller padding
-//                   isDense: true, // Make the input field more compact
-//                 ),
-//                 style: const TextStyle(fontSize: 14), // Smaller text
-//                 onChanged: widget.onSearchChanged,
-//               ),
-//             ),
-//             const SizedBox(width: 8),
-//             PopupMenuButton<String>(
-
-//               icon: const Icon(Icons.filter_list, size: 20), // Smaller icon
-//               tooltip: 'Filter',
-//               itemBuilder: (context) => const [
-//                 PopupMenuItem(
-//                   value: 'asc',
-//                   child: Text('Price: Low to High',
-//                       style: TextStyle(fontSize: 14)), // Smaller text
-//                 ),
-//                 PopupMenuItem(
-//                   value: 'desc',
-//                   child: Text('Price: High to Low',
-//                       style: TextStyle(fontSize: 14)), // Smaller text
-//                 ),
-//               ],
-//               onSelected: widget.onSortChanged,
-//               constraints: const BoxConstraints(
-//                   minWidth: 80), // Adjust min width of the popup
-//               padding: EdgeInsets.zero, // Remove default padding
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
 import 'package:flutter/material.dart';
 
 class InventoryFilterBar extends StatefulWidget {
   final ValueChanged<String> onSearchChanged;
   final ValueChanged<String> onSortChanged;
   final double height;
+  final String hint;
 
-  const InventoryFilterBar({
-    super.key,
-    required this.onSearchChanged,
-    required this.onSortChanged,
-    this.height = 54.0,
-  });
+  const InventoryFilterBar(
+      {super.key,
+      required this.onSearchChanged,
+      required this.onSortChanged,
+      this.height = 54.0,
+      this.hint = "Search products..."});
 
   @override
   State<InventoryFilterBar> createState() => _InventoryFilterBarState();
@@ -100,9 +31,9 @@ class _InventoryFilterBarState extends State<InventoryFilterBar> {
           children: [
             Expanded(
               child: TextField(
-                decoration: const InputDecoration(
-                  hintText: 'Search products...',
-                  prefixIcon: Icon(Icons.search, size: 20),
+                decoration: InputDecoration(
+                  hintText: widget.hint,
+                  prefixIcon: const Icon(Icons.search, size: 20),
                   border: OutlineInputBorder(),
                   contentPadding: EdgeInsets.symmetric(
                     horizontal: 12,

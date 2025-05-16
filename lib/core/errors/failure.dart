@@ -30,7 +30,8 @@ class ServerFailure extends Failure {
       return 'The request timed out. Please try again.';
     }
 
-    return 'Something went wrong. Please try again.';
+    // return 'Something went wrong. Please try again.';
+    return rawMessage;
   }
 }
 

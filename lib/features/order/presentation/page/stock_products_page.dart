@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:stockpro/core/common/widgets/app_text_form_field.dart';
+import 'package:stockpro/features/company/domain/entities/company.dart';
+import 'package:stockpro/features/company/presentation/bloc/company_bloc.dart';
 import 'package:stockpro/features/inventory/domain/entities/inventory_item_entity.dart';
 import 'package:stockpro/features/inventory/presentation/bloc/inventory_bloc.dart';
 import 'package:stockpro/features/inventory/presentation/widgets/image_inventory.dart';
@@ -13,8 +15,10 @@ import 'package:stockpro/features/order/presentation/bloc/order_state.dart';
 class StockProductsPage extends StatefulWidget {
   final String orderType;
   final InventoryItemEntity? product;
+  final OrderEntity? order;
 
-  const StockProductsPage({super.key, required this.orderType, this.product});
+  const StockProductsPage(
+      {super.key, required this.orderType, this.product, this.order});
 
   @override
   State<StockProductsPage> createState() => _StockProductsPageState();
@@ -28,12 +32,30 @@ class _StockProductsPageState extends State<StockProductsPage> {
 
   InventoryItemEntity? _selectedProduct;
   DateTime _selectedDate = DateTime.now();
+  Company? company;
 
   @override
   void initState() {
     super.initState();
+
     if (widget.product != null) {
       _selectedProduct = widget.product;
+    }
+    if (widget.order != null) {
+      _selectedProduct = InventoryItemEntity(
+        id: widget.order!.productId,
+        name: widget.order!.productName,
+        barcode: widget.order!.productSku,
+        categoryId: widget.order!.category,
+        imageUrl: '', // You may need to load image or leave empty
+        quantity: 0, // optional unless used
+        price: widget.order!.price,
+        warehouseId: widget.order!.productWarehouse ?? "",
+      );
+      _quantityController.text = widget.order!.quantity.toString();
+      ;
+      _noteController.text = widget.order!.note ?? "";
+      _selectedDate = widget.order!.date;
     }
     _dateController.text = DateFormat('yyyy-MM-dd HH:mm').format(_selectedDate);
   }
@@ -79,9 +101,18 @@ class _StockProductsPageState extends State<StockProductsPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final companyState = context.watch<CompanyBloc>().state;
+
+    company = (companyState is CompanyCreated)
+        ? companyState.company
+        : (companyState is CompanyBySecretLoaded)
+            ? companyState.company
+            : (companyState is CompanyLoaded)
+                ? companyState.company
+                : null;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Stock Products'),
+        title: Text(widget.order != null ? 'Edit Order' : 'Stock Products'),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.close_outlined),
@@ -214,10 +245,12 @@ class _StockProductsPageState extends State<StockProductsPage> {
 
                     BlocConsumer<OrderBloc, OrderState>(
                       listener: (context, state) {
-                        if (state is OrderAdded) {
+                        if (state is OrderAdded || state is OrderUpdated) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text('Order submitted successfully')),
+                            SnackBar(
+                                content: Text(widget.order != null
+                                    ? 'Order updated successfully'
+                                    : 'Order submitted successfully')),
                           );
 
                           if (widget.product != null) {
@@ -280,7 +313,9 @@ class _StockProductsPageState extends State<StockProductsPage> {
                                 ),
                                 child: isLoading
                                     ? const CircularProgressIndicator()
-                                    : const Text('Submit'),
+                                    : Text(widget.order != null
+                                        ? 'Update'
+                                        : 'Submit'),
                               ),
                             ),
                           ],
@@ -301,31 +336,41 @@ class _StockProductsPageState extends State<StockProductsPage> {
     if (!_formKey.currentState!.validate()) return;
 
     final orderItem = OrderEntity(
-      id: '', // Will be assigned by Firestore/DB
-      customerName: "",
-      productId: _selectedProduct!.id,
-      productName: _selectedProduct!.name,
-      quantity: int.parse(_quantityController.text),
-      date: _selectedDate,
-      note: _noteController.text,
-      type: widget.orderType, // 'in' or 'out'
-      isStocked: widget.product == null ? false : true,
-      productSku: _selectedProduct?.barcode ?? "",
-      category: _selectedProduct?.categoryId ?? "",
-      price: double.parse(_quantityController.text),
-      // Add any other required fields from your InventoryItemEntity
-    );
+        id: widget.order != null
+            ? widget.order!.id
+            : "", // Will be assigned by Firestore/DB
+        customerName: "",
+        productId: _selectedProduct!.id,
+        productName: _selectedProduct!.name,
+        quantity: int.parse(_quantityController.text),
+        date: _selectedDate,
+        note: _noteController.text,
+        type: widget.orderType, // 'in' or 'out'
+        isStocked: widget.order != null
+            ? widget.order!.isStocked
+            : widget.product != null,
+        productSku: _selectedProduct?.barcode ?? "",
+        category: _selectedProduct?.categoryId ?? "",
+        price: double.parse(_quantityController.text),
+        companyId: company?.id
+        // Add any other required fields from your InventoryItemEntity
+        );
 
     // Dispatch the event to your bloc/cubit
-    context.read<OrderBloc>().add(AddNewOrder(orderItem));
 
-    setState(() {
-      if (widget.product == null) {
-        _selectedProduct = null;
-      }
-      _selectedDate = DateTime.now();
-      _dateController.text =
-          DateFormat('yyyy-MM-dd HH:mm').format(_selectedDate);
-    });
+    if (widget.order != null) {
+      context.read<OrderBloc>().add(UpdateExistingOrder(orderItem));
+    } else {
+      context.read<OrderBloc>().add(AddNewOrder(orderItem));
+    }
+
+    // setState(() {
+    //   if (widget.product == null) {
+    //     _selectedProduct = null;
+    //   }
+    //   _selectedDate = DateTime.now();
+    //   _dateController.text =
+    //       DateFormat('yyyy-MM-dd HH:mm').format(_selectedDate);
+    // });
   }
 }

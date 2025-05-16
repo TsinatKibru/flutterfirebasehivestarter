@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stockpro/core/common/widgets/analytics_page.dart';
 import 'package:stockpro/core/common/widgets/app_bottom_sheet.dart';
 import 'package:stockpro/core/common/widgets/common_header.dart';
 import 'package:stockpro/features/category/presentation/bloc/category_bloc.dart';
@@ -8,6 +9,7 @@ import 'package:stockpro/features/category/presentation/widget/add_category_dial
 import 'package:stockpro/features/category/presentation/widget/category_list_widget.dart';
 import 'package:stockpro/features/inventory/presentation/bloc/inventory_bloc.dart';
 import 'package:stockpro/features/inventory/presentation/widgets/inventory_app_bar.dart';
+import 'package:stockpro/features/inventory/presentation/widgets/inventory_drawer.dart';
 import 'package:stockpro/features/inventory/presentation/widgets/inventory_filter_bar.dart';
 
 class CategoryPage extends StatefulWidget {
@@ -39,7 +41,7 @@ class _CategoryPageState extends State<CategoryPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: InventoryAppBar(),
-      drawer: Drawer(),
+      drawer: InventoryDrawer(),
       body: SafeArea(
         child: Column(
           children: [
@@ -51,6 +53,7 @@ class _CategoryPageState extends State<CategoryPage> {
               },
             ),
             InventoryFilterBar(
+              hint: "Search Categories...",
               onSearchChanged: (value) => setState(() => searchQuery = value),
               onSortChanged: (value) => setState(() => sortOrder = value),
             ),

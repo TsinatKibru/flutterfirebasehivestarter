@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:stockpro/core/errors/exception.dart';
-import 'package:stockpro/features/auth/data/model/user_model.dart';
-import '../../domain/entities/user_entity.dart';
+import 'package:stockpro/core/common/models/user_model.dart';
+import '../../../../core/common/entities/user_entity.dart';
 
 /// Interface for Firestore-based user operations
 abstract class UserRemoteDataSource {
@@ -17,6 +17,8 @@ abstract class UserRemoteDataSource {
 
   /// Deletes a user document by [id]
   Future deleteUser(String id);
+
+  Future<void> clearCache();
 }
 
 /// Implementation of [UserRemoteDataSource] using Firebase Firestore
@@ -26,10 +28,28 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
 
   UserRemoteDataSourceImpl({required this.firestore});
 
+  // @override
+  // Future createUser(UserModel user) async {
+  //   try {
+  //     await firestore.collection(_collection).doc(user.id).set(user.toMap());
+  //   } on FirebaseException catch (e) {
+  //     throw ServerException(e.message ?? 'Failed to create user');
+  //   }
+  // }
   @override
   Future createUser(UserModel user) async {
     try {
-      await firestore.collection(_collection).doc(user.id).set(user.toMap());
+      final userData = user.toMap();
+      final existingRole = userData['role'];
+
+      if (existingRole == null ||
+          existingRole.isEmpty ||
+          (existingRole != 'staff' &&
+              existingRole != 'admin' &&
+              existingRole != 'manage')) {
+        userData['role'] = 'staff'; // Default to 'staff' if no valid role
+      }
+      await firestore.collection(_collection).doc(user.id).set(userData);
     } on FirebaseException catch (e) {
       throw ServerException(e.message ?? 'Failed to create user');
     }
@@ -65,6 +85,20 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
       throw ServerException(e.message ?? 'Failed to delete user');
     }
   }
+
+  @override
+  Future<void> clearCache() async {
+    try {
+      await firestore.terminate();
+      await firestore.clearPersistence();
+    } on FirebaseException catch (e) {
+      print("dkvbj:");
+      throw ServerException('Failed to clear Firestore cache: ${e.message}');
+    } catch (e) {
+      print("kvbkjeghvrherv");
+      throw ServerException('Unexpected error while clearing Firestore cache');
+    }
+  }
 }
 
 // Extend UserModel to support Firestore serialization
@@ -88,6 +122,7 @@ extension UserModelFirestoreX on UserModel {
       name: map['name'] as String?,
       photoUrl: map['photoUrl'] as String?,
       lastLogin: DateTime.parse(map['lastLogin'] as String),
+      companyId: map['companyId'] as String,
     );
   }
 }

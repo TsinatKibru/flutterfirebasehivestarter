@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stockpro/core/errors/failure.dart';
-import 'package:stockpro/features/auth/domain/entities/user_entity.dart';
+import 'package:stockpro/core/common/entities/user_entity.dart';
 import 'package:stockpro/features/auth/domain/usecases/is_signed_in.dart';
 import 'package:stockpro/features/auth/domain/usecases/sign_in.dart';
 import 'package:stockpro/features/auth/domain/usecases/sign_out.dart';
@@ -59,7 +59,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         await signUpWithEmailAndPassword(event.email, event.password);
 
     result.match(
-      (failure) => emit(AuthError(message: _mapFailureToMessage(failure))),
+      (failure) =>
+          emit(AuthSignUpError(message: _mapFailureToMessage(failure))),
       (user) {
         if (user != null) {
           emit(Authenticated(

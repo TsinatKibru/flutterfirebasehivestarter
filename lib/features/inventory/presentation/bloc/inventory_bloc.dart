@@ -76,7 +76,10 @@ class InventoryBloc extends Bloc<InventoryEvent, InventoryState> {
     final result = await updateItem.call(event.item);
     result.fold(
       (failure) => emit(InventoryError(failure.message)),
-      (item) => emit(InventoryOperationSuccess(item)),
+      (item) {
+        emit(InventoryOperationSuccess(item));
+        add(WatchInventoryItemsEvent());
+      },
     );
   }
 

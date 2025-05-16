@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stockpro/core/common/entities/user_entity.dart';
+import 'package:stockpro/core/utils/permission_util.dart';
+import 'package:stockpro/features/auth/presentation/bloc/auth/auth_bloc.dart';
 import 'package:stockpro/features/order/domain/entities/order_entity.dart';
 import 'package:stockpro/features/order/presentation/bloc/order_bloc.dart';
 import 'package:stockpro/features/order/presentation/bloc/order_event.dart';
@@ -15,8 +18,14 @@ class _OrderFormPageState extends State<OrderFormPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _customerNameController = TextEditingController();
   final TextEditingController _totalAmountController = TextEditingController();
+  UserEntity? currentUser;
 
   void _submit() {
+    if (!PermissionUtil.isAdmin(currentUser)) {
+      PermissionUtil.showNoPermissionMessage(context);
+      return; // Exit the function if not admin
+    }
+
     if (_formKey.currentState!.validate()) {
       final order = OrderEntity(
         id: '', // Firestore/DB will assign this
@@ -40,6 +49,8 @@ class _OrderFormPageState extends State<OrderFormPage> {
 
   @override
   Widget build(BuildContext context) {
+    final authState = context.watch<AuthBloc>().state;
+    currentUser = authState is Authenticated ? authState.user : null;
     return Scaffold(
       appBar: AppBar(title: const Text('Add Order')),
       body: Padding(

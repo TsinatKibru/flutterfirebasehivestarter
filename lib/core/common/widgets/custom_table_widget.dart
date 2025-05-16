@@ -84,10 +84,15 @@ class CustomListTableWidget extends StatelessWidget {
               ? 50.0
               : index == 1
                   ? 75.0
-                  : 120.0;
+                  : index == 3
+                      ? 200.0
+                      : 120.0;
 
           return Container(
             width: cellWidth,
+            constraints: BoxConstraints(
+              maxWidth: cellWidth,
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             alignment: _getAlignment(columnAlignments?[index]),
             child: DefaultTextStyle.merge(

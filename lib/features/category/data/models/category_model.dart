@@ -6,6 +6,7 @@ class CategoryModel extends CategoryEntity {
     required super.name,
     super.imageUrl,
     super.productCount,
+    super.companyId, // Added companyId here
   });
 
   factory CategoryModel.fromMap(Map<String, dynamic> map, String id) {
@@ -14,6 +15,7 @@ class CategoryModel extends CategoryEntity {
       name: map['name'],
       imageUrl: map['imageUrl'],
       productCount: map['productCount'] ?? 0,
+      companyId: map['companyId'], // Retrieved companyId from map
     );
   }
 
@@ -22,6 +24,7 @@ class CategoryModel extends CategoryEntity {
       'name': name,
       'imageUrl': imageUrl,
       'productCount': productCount,
+      'companyId': companyId, // Included companyId in the map
     };
   }
 
@@ -32,6 +35,7 @@ class CategoryModel extends CategoryEntity {
       name: entity.name,
       imageUrl: entity.imageUrl,
       productCount: entity.productCount,
+      companyId: entity.companyId, // Mapped companyId from entity
     );
   }
 
@@ -42,11 +46,12 @@ class CategoryModel extends CategoryEntity {
       name: name,
       imageUrl: imageUrl,
       productCount: productCount,
+      companyId: companyId, // Passed companyId to entity
     );
   }
 
   @override
   String toString() {
-    return 'CategoryModel(id: $id, name: $name, imageUrl: $imageUrl, productCount: $productCount)';
+    return 'CategoryModel(id: $id, name: $name, imageUrl: $imageUrl, productCount: $productCount, companyId: $companyId)';
   }
 }

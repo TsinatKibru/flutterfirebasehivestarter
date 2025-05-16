@@ -5,7 +5,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:get_it/get_it.dart';
 import 'package:stockpro/core/constants/secrets.dart';
@@ -19,6 +18,14 @@ import 'package:stockpro/features/category/domain/usecases/get_all_categories.da
 import 'package:stockpro/features/category/domain/usecases/update_category.dart';
 import 'package:stockpro/features/category/presentation/bloc/category_bloc.dart';
 import 'package:stockpro/features/category/presentation/bloc/category_event.dart';
+import 'package:stockpro/features/company/data/datasources/company_remote_data_source.dart';
+import 'package:stockpro/features/company/data/repositories/company_repository_impl.dart';
+import 'package:stockpro/features/company/domain/repositories/company_repository.dart';
+import 'package:stockpro/features/company/domain/usecases/create_company.dart';
+import 'package:stockpro/features/company/domain/usecases/get_company_by_id.dart';
+import 'package:stockpro/features/company/domain/usecases/get_company_by_secret.dart';
+import 'package:stockpro/features/company/domain/usecases/update_company.dart';
+import 'package:stockpro/features/company/presentation/bloc/company_bloc.dart';
 import 'package:stockpro/features/inventory/data/datasources/inventory_remote_data_source.dart';
 import 'package:stockpro/features/inventory/data/repositories/inventory_repository_impl.dart';
 import 'package:stockpro/features/inventory/domain/repositories/inventory_repository.dart';
@@ -41,6 +48,15 @@ import 'package:stockpro/features/order/domain/usecases/mark_order_as_stocked.da
 import 'package:stockpro/features/order/domain/usecases/update_order.dart';
 import 'package:stockpro/features/order/presentation/bloc/order_bloc.dart';
 import 'package:stockpro/features/order/presentation/bloc/order_event.dart';
+import 'package:stockpro/features/users/data/datasources/user_remote_data_source.dart';
+import 'package:stockpro/features/users/data/repositories/user_repository_impl.dart';
+import 'package:stockpro/features/users/domain/repositories/user_repository.dart';
+import 'package:stockpro/features/users/domain/usecases/add_user.dart';
+import 'package:stockpro/features/users/domain/usecases/delete_user.dart';
+import 'package:stockpro/features/users/domain/usecases/get_all_users.dart';
+import 'package:stockpro/features/users/domain/usecases/update_user.dart';
+import 'package:stockpro/features/users/presentation/bloc/user_bloc.dart';
+import 'package:stockpro/features/users/presentation/bloc/user_event.dart';
 import 'package:stockpro/features/warehouse/data/datasources/warehouse_remote_data_source.dart';
 import 'package:stockpro/features/warehouse/data/repositories/warehouse_repository_impl.dart';
 import 'package:stockpro/features/warehouse/domain/repositories/warehouse_repository.dart';
@@ -53,7 +69,7 @@ import 'package:stockpro/features/warehouse/presentation/bloc/warehouse_event.da
 
 import 'features/auth/data/datasource/auth_remote_data_source.dart';
 import 'features/auth/data/datasource/auth_local_data_source.dart';
-import 'features/auth/data/model/user_model.dart';
+import 'core/common/models/user_model.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/repositories/auth_repository.dart';
 import 'features/auth/domain/usecases/is_signed_in.dart';
@@ -71,17 +87,11 @@ Future<void> initializeDependencies() async {
   _initCategory();
   _initWarehouse();
   _initOrder();
+  _initUser();
+  _initCompany();
 }
 
 Future<void> _initCore() async {
-  // Database
-  final appDocumentDirectory =
-      await path_provider.getApplicationDocumentsDirectory();
-  await Hive.initFlutter(appDocumentDirectory.path);
-
-  Hive.registerAdapter(UserModelAdapter());
-  await Hive.openBox<UserModel>('user_box');
-
   // Firebase
   await Firebase.initializeApp();
   sl.registerLazySingleton<FirebaseAuth>(() => FirebaseAuth.instance);
@@ -96,9 +106,6 @@ void _initAuth() {
   sl.registerLazySingleton<AuthRemoteDataSource>(
     () => AuthRemoteDataSourceImpl(sl<FirebaseAuth>()),
   );
-  sl.registerLazySingleton<AuthLocalDataSource>(
-    () => AuthLocalDataSourceImpl(Hive.box<UserModel>('user_box')),
-  );
 
   sl.registerLazySingleton<UserRemoteDataSource>(
     () => UserRemoteDataSourceImpl(firestore: sl<FirebaseFirestore>()),
@@ -106,8 +113,8 @@ void _initAuth() {
 
   // Repository
   sl.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(sl<AuthRemoteDataSource>(),
-        sl<AuthLocalDataSource>(), sl<UserRemoteDataSource>()),
+    () => AuthRepositoryImpl(
+        sl<AuthRemoteDataSource>(), sl<UserRemoteDataSource>()),
   );
 
   // Use Cases
@@ -195,6 +202,32 @@ void _initCategory() {
       deleteCategory: sl()));
 }
 
+void _initUser() {
+  // User Data Source
+  sl.registerLazySingleton<UsersRemoteDataSource>(
+    () => UsersRemoteDataSourceImpl(sl()),
+  );
+
+  // User Repository
+  sl.registerLazySingleton<UserRepository>(
+    () => UserRepositoryImpl(sl()),
+  );
+
+  // User Use Cases
+  sl.registerLazySingleton(() => GetAllUsers(sl()));
+  sl.registerLazySingleton(() => AddUser(sl()));
+  sl.registerLazySingleton(() => UpdateUser(sl()));
+  sl.registerLazySingleton(() => DeleteUser(sl()));
+
+  // User Bloc
+  sl.registerFactory(() => UserBloc(
+        getAllUsers: sl(),
+        addUser: sl(),
+        updateUser: sl(),
+        deleteUser: sl(),
+      ));
+}
+
 void _initWarehouse() {
   sl.registerLazySingleton<WarehouseRemoteDataSource>(
     () => WarehouseRemoteDataSourceImpl(sl()),
@@ -246,6 +279,28 @@ void _initOrder() {
       ));
 }
 
+void _initCompany() {
+  sl.registerLazySingleton<CompanyRemoteDataSource>(
+      () => CompanyRemoteDataSourceImpl(sl<FirebaseFirestore>()));
+
+  sl.registerLazySingleton<CompanyRepository>(
+      () => CompanyRepositoryImpl(sl<CompanyRemoteDataSource>()));
+
+  sl.registerLazySingleton(() => CreateCompany(sl()));
+  sl.registerLazySingleton(() => GetCompanyById(sl()));
+  sl.registerLazySingleton(() => GetCompanyBySecret(sl()));
+  sl.registerLazySingleton(() => UpdateCompany(sl()));
+
+  sl.registerFactory(
+    () => CompanyBloc(
+      createCompany: sl(),
+      getCompanyById: sl(),
+      getCompanyBySecret: sl(),
+      updateCompany: sl(),
+    ),
+  );
+}
+
 List<BlocProvider> getBlocProviders() {
   return [
     BlocProvider<AuthBloc>(
@@ -255,9 +310,12 @@ List<BlocProvider> getBlocProviders() {
     ),
     BlocProvider<CategoryBloc>(
         create: (context) => sl<CategoryBloc>()..add(LoadCategories())),
+    BlocProvider<UserBloc>(
+        create: (context) => sl<UserBloc>()..add(LoadUsers())),
     BlocProvider<WarehouseBloc>(
         create: (context) => sl<WarehouseBloc>()..add(LoadWarehouses())),
     BlocProvider<OrderBloc>(
         create: (context) => sl<OrderBloc>()..add(LoadOrders())),
+    BlocProvider<CompanyBloc>(create: (context) => sl<CompanyBloc>()),
   ];
 }

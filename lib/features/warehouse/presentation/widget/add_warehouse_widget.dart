@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:stockpro/features/company/domain/entities/company.dart';
+import 'package:stockpro/features/company/presentation/bloc/company_bloc.dart';
 import 'package:stockpro/features/warehouse/domain/entities/warehouse_entity.dart';
 import 'package:stockpro/features/warehouse/presentation/bloc/warehouse_bloc.dart';
 import 'package:stockpro/features/warehouse/presentation/bloc/warehouse_event.dart';
@@ -19,10 +21,12 @@ class _AddWarehousePageState extends State<AddWarehousePage> {
   final _nameController = TextEditingController();
   final _addressController = TextEditingController();
   final _cityController = TextEditingController();
+  Company? company;
 
   @override
   void initState() {
     super.initState();
+
     if (widget.existingWarehouse != null) {
       _nameController.text = widget.existingWarehouse!.name;
       final location = widget.existingWarehouse!.location;
@@ -46,6 +50,7 @@ class _AddWarehousePageState extends State<AddWarehousePage> {
         name: _nameController.text.trim(),
         location:
             '${_addressController.text.trim()} ${_cityController.text.trim()}',
+        companyId: company?.id,
       );
 
       bloc.add(isEditing
@@ -57,6 +62,15 @@ class _AddWarehousePageState extends State<AddWarehousePage> {
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.existingWarehouse != null;
+    final companyState = context.watch<CompanyBloc>().state;
+
+    company = (companyState is CompanyCreated)
+        ? companyState.company
+        : (companyState is CompanyBySecretLoaded)
+            ? companyState.company
+            : (companyState is CompanyLoaded)
+                ? companyState.company
+                : null;
 
     return Scaffold(
       appBar: AppBar(
@@ -69,11 +83,11 @@ class _AddWarehousePageState extends State<AddWarehousePage> {
       body: BlocConsumer<WarehouseBloc, WarehouseState>(
         listener: (context, state) {
           if (state is WarehouseLoaded) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: Text(
-                      isEditing ? 'Warehouse updated' : 'Warehouse added')),
-            );
+            // ScaffoldMessenger.of(context).showSnackBar(
+            //   SnackBar(
+            //       content: Text(
+            //           isEditing ? 'Warehouse updated' : 'Warehouse added')),
+            // );
             Navigator.of(context).pop();
           } else if (state is WarehouseError) {
             ScaffoldMessenger.of(context).showSnackBar(

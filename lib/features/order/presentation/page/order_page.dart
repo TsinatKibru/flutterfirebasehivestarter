@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:stockpro/core/common/widgets/app_bottom_sheet.dart';
 import 'package:stockpro/core/common/widgets/custom_table_widget.dart';
+import 'package:stockpro/core/common/widgets/more_options_button.dart';
 import 'package:stockpro/features/category/domain/entities/category_entity.dart';
 import 'package:stockpro/features/category/presentation/bloc/category_bloc.dart';
 import 'package:stockpro/features/category/presentation/bloc/category_state.dart';
@@ -10,6 +11,7 @@ import 'package:stockpro/features/category/presentation/widget/category_utils.da
 import 'package:stockpro/features/inventory/domain/entities/inventory_item_entity.dart';
 import 'package:stockpro/features/inventory/presentation/bloc/inventory_bloc.dart';
 import 'package:stockpro/features/inventory/presentation/widgets/inventory_app_bar.dart';
+import 'package:stockpro/features/inventory/presentation/widgets/inventory_drawer.dart';
 import 'package:stockpro/features/inventory/presentation/widgets/inventory_filter_bar.dart';
 import 'package:stockpro/features/order/domain/entities/order_entity.dart';
 import 'package:stockpro/features/order/presentation/bloc/order_bloc.dart';
@@ -35,17 +37,19 @@ class _OrdersListPageState extends State<OrdersListPage> {
   }
 
   String _searchText = '';
-  Future<void> _showAddEditBottomSheet(String type) async {
+  Future<void> _showAddEditBottomSheet(String type,
+      [OrderEntity? order]) async {
     await BottomSheetUtils.showCustomBottomSheet(
       context: context,
       heightFactor: 0.82,
       child: MultiBlocProvider(
         providers: [
-          // BlocProvider.value(value: context.read<Produc>()),
+          BlocProvider.value(value: context.read<InventoryBloc>()),
           BlocProvider.value(value: context.read<OrderBloc>()),
         ],
         child: StockProductsPage(
           orderType: type,
+          order: order,
         ),
       ),
     );
@@ -62,7 +66,9 @@ class _OrdersListPageState extends State<OrdersListPage> {
         ],
         child: OrderDetailsPage(
           order: order,
-          onEdit: () {},
+          onEdit: () {
+            _showAddEditBottomSheet(order.type, order);
+          },
         ),
       ),
     );
@@ -74,7 +80,7 @@ class _OrdersListPageState extends State<OrdersListPage> {
     final colorScheme = theme.colorScheme;
     return Scaffold(
       appBar: InventoryAppBar(),
-      drawer: const Drawer(), // Empty drawer
+      drawer: InventoryDrawer(),
       body: Column(
         children: [
           BlocBuilder<CategoryBloc, CategoryState>(
@@ -138,6 +144,7 @@ class _OrdersListPageState extends State<OrdersListPage> {
           ),
 
           InventoryFilterBar(
+            hint: "Search Orders...",
             height: 55,
             onSearchChanged: (value) =>
                 setState(() => _searchText = value.toLowerCase()),
@@ -192,6 +199,7 @@ class _OrdersListPageState extends State<OrdersListPage> {
                                   'Quantity',
                                   'Category',
                                   'Date and Time',
+                                  'Adjust',
                                 ],
                                 rows: filteredOrders.map((order) {
                                   return [
@@ -226,6 +234,13 @@ class _OrdersListPageState extends State<OrdersListPage> {
                                         order.category, _categories)),
                                     Text(DateFormat('MM/dd HH:mm')
                                         .format(order.date)),
+                                    EditDeletePopover(
+                                      onEdit: () {
+                                        _showAddEditBottomSheet(
+                                            order.type, order);
+                                      },
+                                      onDelete: () {},
+                                    )
                                   ];
                                 }).toList(),
                                 columnAlignments: const [
@@ -236,6 +251,7 @@ class _OrdersListPageState extends State<OrdersListPage> {
                                   TextAlign.center,
                                   TextAlign.left,
                                   TextAlign.left,
+                                  TextAlign.center,
                                 ],
                                 onRowTap: (index) {
                                   final selectedOrder = filteredOrders[index];

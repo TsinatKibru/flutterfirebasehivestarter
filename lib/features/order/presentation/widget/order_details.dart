@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:stockpro/core/common/widgets/app_bottom_sheet.dart';
+import 'package:stockpro/features/inventory/presentation/bloc/inventory_bloc.dart';
 import 'package:stockpro/features/inventory/presentation/widgets/image_inventory.dart';
 import 'package:stockpro/features/order/domain/entities/order_entity.dart';
+import 'package:stockpro/features/order/presentation/bloc/order_bloc.dart';
+import 'package:stockpro/features/order/presentation/page/stock_products_page.dart';
 
 class OrderDetailsPage extends StatelessWidget {
   final OrderEntity order;
@@ -17,6 +22,23 @@ class OrderDetailsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isStock = order.type == 'stock';
+    Future<void> _showAddEditBottomSheet(String type,
+        [OrderEntity? order]) async {
+      await BottomSheetUtils.showCustomBottomSheet(
+        context: context,
+        heightFactor: 0.82,
+        child: MultiBlocProvider(
+          providers: [
+            BlocProvider.value(value: context.read<InventoryBloc>()),
+            BlocProvider.value(value: context.read<OrderBloc>()),
+          ],
+          child: StockProductsPage(
+            orderType: type,
+            order: order,
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(

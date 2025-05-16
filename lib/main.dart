@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:stockpro/config/routes/routes.dart';
 import 'package:stockpro/config/theme/app_themes.dart';
 import 'package:stockpro/features/auth/presentation/bloc/auth/auth_bloc.dart';
 import 'package:stockpro/root_screen.dart';
@@ -23,12 +22,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Trigger initial events after app is built
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   _triggerInitialEvents(context);
-    // });
-
     return MaterialApp(
+        scrollBehavior:
+            const MaterialScrollBehavior().copyWith(overscroll: false),
         debugShowCheckedModeBanner: false,
         theme: theme(),
         title: 'Daily News',

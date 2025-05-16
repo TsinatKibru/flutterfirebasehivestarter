@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:stockpro/core/utils/user_utils.dart';
 import 'package:stockpro/features/warehouse/data/models/warehouse_model.dart';
 
 abstract class WarehouseRemoteDataSource {
@@ -13,9 +14,29 @@ class WarehouseRemoteDataSourceImpl implements WarehouseRemoteDataSource {
 
   WarehouseRemoteDataSourceImpl(this.firestore);
 
+  // @override
+  // Stream<List<WarehouseModel>> getWarehouses() {
+  //   return firestore.collection('warehouses').snapshots().map(
+  //         (snapshot) => snapshot.docs
+  //             .map((doc) => WarehouseModel.fromDocument(doc))
+  //             .toList(),
+  //       );
+  // }
   @override
-  Stream<List<WarehouseModel>> getWarehouses() {
-    return firestore.collection('warehouses').snapshots().map(
+  Stream<List<WarehouseModel>> getWarehouses() async* {
+    final companyId = await getCurrentUserCompanyId();
+
+    if (companyId == null) {
+      print('⚠️ Cannot stream warehouses without companyId.');
+      yield [];
+      return;
+    }
+
+    yield* firestore
+        .collection('warehouses')
+        .where('companyId', isEqualTo: companyId)
+        .snapshots()
+        .map(
           (snapshot) => snapshot.docs
               .map((doc) => WarehouseModel.fromDocument(doc))
               .toList(),

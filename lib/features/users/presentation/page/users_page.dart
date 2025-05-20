@@ -64,8 +64,14 @@ class _UsersPageState extends State<UsersPage> {
             ),
             InventoryFilterBar(
               hint: "Search Users...",
-              onSearchChanged: (value) => setState(() => searchQuery = value),
-              onSortChanged: (value) => setState(() => sortOrder = value),
+              onSearchChanged: (value) =>
+                  setState(() => searchQuery = value.toLowerCase()),
+              onSortOrFilterChanged: (value) =>
+                  setState(() => sortOrder = value),
+              filterOptions: const [
+                PopupMenuItem(value: 'role_admin', child: Text('Role: Admin')),
+                PopupMenuItem(value: 'role_staff', child: Text('Role: Staff')),
+              ],
             ),
             Expanded(
               child: BlocBuilder<UserBloc, UserState>(
@@ -73,7 +79,24 @@ class _UsersPageState extends State<UsersPage> {
                   if (state is UserLoading) {
                     return const Center(child: UserListShimmer());
                   } else if (state is UserLoaded) {
-                    return UserListWidget(users: state.users);
+                    final filteredUsers = state.users.where((user) {
+                      final name = user.name?.toLowerCase() ?? '';
+                      final email = user.email.toLowerCase();
+                      final matchesSearch = name.contains(searchQuery) ||
+                          email.contains(searchQuery);
+
+                      final matchesFilter = switch (sortOrder) {
+                        'role_admin' => user.role == 'admin',
+                        'role_staff' => user.role == 'staff',
+                        _ => true,
+                      };
+
+                      return matchesSearch && matchesFilter;
+                    }).toList();
+
+                    return UserListWidget(users: filteredUsers);
+
+                    // return UserListWidget(users: state.users);
                   } else if (state is UserError) {
                     return Center(child: Text('Error: ${state.message}'));
                   }

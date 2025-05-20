@@ -37,6 +37,8 @@ class _OrdersListPageState extends State<OrdersListPage> {
   }
 
   String _searchText = '';
+  String? _filterOption;
+
   Future<void> _showAddEditBottomSheet(String type,
       [OrderEntity? order]) async {
     await BottomSheetUtils.showCustomBottomSheet(
@@ -148,7 +150,14 @@ class _OrdersListPageState extends State<OrdersListPage> {
             height: 55,
             onSearchChanged: (value) =>
                 setState(() => _searchText = value.toLowerCase()),
-            onSortChanged: (value) => setState(() {}),
+            onSortOrFilterChanged: (value) =>
+                setState(() => _filterOption = value),
+            filterOptions: const [
+              PopupMenuItem(value: 'type_stock', child: Text('Type: Stock')),
+              PopupMenuItem(value: 'type_sell', child: Text('Type: Sell')),
+              PopupMenuItem(value: 'stocked_true', child: Text('Stocked: Yes')),
+              PopupMenuItem(value: 'stocked_false', child: Text('Stocked: No')),
+            ],
           ),
 
           // Orders Table
@@ -163,11 +172,29 @@ class _OrdersListPageState extends State<OrdersListPage> {
                 if (state is OrderLoading) {
                   return const Center(child: CircularProgressIndicator());
                 } else if (state is OrderLoaded) {
+                  // final filteredOrders = state.orders.where((order) {
+                  //   return order.productSku
+                  //           .toLowerCase()
+                  //           .contains(_searchText) ||
+                  //       order.category.toLowerCase().contains(_searchText) ||
+                  //       order.productName.toLowerCase().contains(_searchText);
+                  // }).toList();
                   final filteredOrders = state.orders.where((order) {
-                    return order.productSku
+                    final matchesSearch = order.productSku
                             .toLowerCase()
                             .contains(_searchText) ||
-                        order.category.toLowerCase().contains(_searchText);
+                        order.category.toLowerCase().contains(_searchText) ||
+                        order.productName.toLowerCase().contains(_searchText);
+
+                    final matchesFilter = switch (_filterOption) {
+                      'type_stock' => order.type == 'stock',
+                      'type_sell' => order.type == 'sell',
+                      'stocked_true' => order.isStocked,
+                      'stocked_false' => !order.isStocked,
+                      _ => true,
+                    };
+
+                    return matchesSearch && matchesFilter;
                   }).toList();
 
                   if (filteredOrders.isEmpty) {

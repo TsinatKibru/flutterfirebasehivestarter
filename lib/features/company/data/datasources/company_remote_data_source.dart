@@ -68,9 +68,6 @@ class CompanyRemoteDataSourceImpl implements CompanyRemoteDataSource {
       // Internal log, alerting, or analytics hook here
       print('Warning: Multiple companies found for secret "$secret"');
 
-      // Optionally, send this to error monitoring:
-      // FirebaseCrashlytics.instance.log(...);
-
       return null; // or decide which one to return, but silently
     }
 

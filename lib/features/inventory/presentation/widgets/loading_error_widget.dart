@@ -1,51 +1,5 @@
-// import 'package:flutter/material.dart';
-
-// class LoadingErrorWidget extends StatelessWidget {
-//   final bool isLoading;
-//   final bool isError;
-//   final String? message;
-//   final IconData? icon;
-//   final Color color;
-
-//   const LoadingErrorWidget({
-//     super.key,
-//     this.isLoading = false,
-//     this.isError = false,
-//     this.message,
-//     this.icon,
-//     this.color = Colors.grey,
-//   });
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Center(
-//       child: Column(
-//         mainAxisSize: MainAxisSize.min,
-//         children: [
-//           if (isLoading)
-//             const CircularProgressIndicator()
-//           else
-//             Icon(
-//               icon ?? (isError ? Icons.error_outline : Icons.inbox),
-//               size: 48,
-//               color: color,
-//             ),
-//           if (message != null) ...[
-//             const SizedBox(height: 12),
-//             Text(
-//               message!,
-//               style: TextStyle(fontSize: 16, color: color),
-//               textAlign: TextAlign.center,
-//             ),
-//           ],
-//         ],
-//       ),
-//     );
-//   }
-// }
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:stockpro/core/utils/loading_page.dart';
 import 'package:stockpro/features/inventory/presentation/bloc/inventory_bloc.dart';
 import 'package:stockpro/features/inventory/presentation/widgets/product_shimmer_grid.dart';
 
@@ -75,7 +29,8 @@ class _LoadingErrorWidgetState extends State<LoadingErrorWidget> {
     return Center(
       child: SingleChildScrollView(
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          //mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             if (widget.isLoading)
               // const CircularProgressIndicator()

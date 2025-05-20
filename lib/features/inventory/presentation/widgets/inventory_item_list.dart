@@ -41,7 +41,8 @@ class InventoryItemList extends StatelessWidget {
 
   List<InventoryItemEntity> _filterAndSortItems(
       List<InventoryItemEntity> items, List<CategoryEntity> categories) {
-    var filteredItems = items;
+    // var filteredItems = items;
+    var filteredItems = [...items];
 
     // Apply search
     if (searchQuery.isNotEmpty) {
@@ -105,19 +106,25 @@ class InventoryItemList extends StatelessWidget {
             final categorizedItems =
                 _groupByCategory(filteredItems, categories);
 
-            if (filteredItems.isEmpty) {
-              return const LoadingErrorWidget(
-                icon: Icons.inbox,
-                message: 'No items found',
-              );
-            }
-
             return Column(
               children: [
                 ProductHeader(onAddProduct: onAddProduct),
                 InventoryFilterBar(
+                  hint: "Search Products...",
                   onSearchChanged: onSearchChanged,
-                  onSortChanged: onSortChanged,
+                  onSortOrFilterChanged: onSortChanged,
+                  filterOptions: const [
+                    PopupMenuItem(
+                      value: 'asc',
+                      child: Text('Price: Low to High',
+                          style: TextStyle(fontSize: 14)),
+                    ),
+                    PopupMenuItem(
+                      value: 'desc',
+                      child: Text('Price: High to Low',
+                          style: TextStyle(fontSize: 14)),
+                    ),
+                  ],
                 ),
                 Expanded(
                   child: RefreshIndicator(
@@ -133,6 +140,11 @@ class InventoryItemList extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (filteredItems.isEmpty)
+                  LoadingErrorWidget(
+                    icon: Icons.inbox,
+                    message: 'No items found',
+                  )
               ],
             );
           }

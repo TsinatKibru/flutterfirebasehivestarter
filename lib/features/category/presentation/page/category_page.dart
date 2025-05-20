@@ -55,7 +55,18 @@ class _CategoryPageState extends State<CategoryPage> {
             InventoryFilterBar(
               hint: "Search Categories...",
               onSearchChanged: (value) => setState(() => searchQuery = value),
-              onSortChanged: (value) => setState(() => sortOrder = value),
+              onSortOrFilterChanged: (value) =>
+                  setState(() => sortOrder = value),
+              filterOptions: const [
+                PopupMenuItem(
+                    value: 'productCount_asc',
+                    child: Text('Product Count: Low to High')),
+                PopupMenuItem(
+                    value: 'productCount_desc',
+                    child: Text('Product Count: High to Low')),
+                PopupMenuItem(value: 'name_asc', child: Text('Name: A-Z')),
+                PopupMenuItem(value: 'name_desc', child: Text('Name: Z-A')),
+              ],
             ),
             Expanded(
               child: BlocBuilder<CategoryBloc, CategoryState>(
@@ -63,7 +74,34 @@ class _CategoryPageState extends State<CategoryPage> {
                   if (state is CategoryLoading) {
                     return const Center(child: CircularProgressIndicator());
                   } else if (state is CategoryLoaded) {
-                    return CategoryListWidget(categories: state.categories);
+                    final filteredCategories = state.categories
+                        .where((category) => category.name
+                            .toLowerCase()
+                            .contains(searchQuery.toLowerCase()))
+                        .toList();
+
+                    switch (sortOrder) {
+                      case 'productCount_asc':
+                        filteredCategories.sort(
+                            (a, b) => a.productCount.compareTo(b.productCount));
+                        break;
+                      case 'productCount_desc':
+                        filteredCategories.sort(
+                            (a, b) => b.productCount.compareTo(a.productCount));
+                        break;
+                      case 'name_asc':
+                        filteredCategories
+                            .sort((a, b) => a.name.compareTo(b.name));
+                        break;
+                      case 'name_desc':
+                        filteredCategories
+                            .sort((a, b) => b.name.compareTo(a.name));
+                        break;
+                    }
+
+                    return CategoryListWidget(categories: filteredCategories);
+
+                    //return CategoryListWidget(categories: state.categories);
                   } else if (state is CategoryError) {
                     return Center(child: Text('Error: ${state.message}'));
                   }

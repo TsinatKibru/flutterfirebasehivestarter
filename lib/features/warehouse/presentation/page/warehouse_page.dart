@@ -53,10 +53,20 @@ class _WarehousePageState extends State<WarehousePage> {
                 _warehousemanageBottomSheet();
               },
             ),
+
             InventoryFilterBar(
               hint: "Search Warehouses...",
               onSearchChanged: (value) => setState(() => searchQuery = value),
-              onSortChanged: (value) => setState(() => sortOrder = value),
+              onSortOrFilterChanged: (value) =>
+                  setState(() => sortOrder = value),
+              filterOptions: const [
+                PopupMenuItem(
+                    value: 'location_asc', child: Text('Location: A-Z')),
+                PopupMenuItem(
+                    value: 'location_desc', child: Text('Location: Z-A')),
+                PopupMenuItem(value: 'name_asc', child: Text('Name: A-Z')),
+                PopupMenuItem(value: 'name_desc', child: Text('Name: Z-A')),
+              ],
             ),
 
             // Map Placeholder with max height of 300
@@ -98,7 +108,34 @@ class _WarehousePageState extends State<WarehousePage> {
                   if (state is WarehouseLoading) {
                     return const Center(child: CircularProgressIndicator());
                   } else if (state is WarehouseLoaded) {
-                    return WarehouseListWidget(warehouses: state.warehouses);
+                    final filteredWarehouses = state.warehouses
+                        .where((warehouse) => warehouse.name
+                            .toLowerCase()
+                            .contains(searchQuery.toLowerCase()))
+                        .toList();
+
+                    switch (sortOrder) {
+                      case 'location_asc':
+                        filteredWarehouses
+                            .sort((a, b) => a.location.compareTo(b.location));
+                        break;
+                      case 'location_desc':
+                        filteredWarehouses
+                            .sort((a, b) => b.location.compareTo(a.location));
+                        break;
+                      case 'name_asc':
+                        filteredWarehouses
+                            .sort((a, b) => a.name.compareTo(b.name));
+                        break;
+                      case 'name_desc':
+                        filteredWarehouses
+                            .sort((a, b) => b.name.compareTo(a.name));
+                        break;
+                    }
+
+                    return WarehouseListWidget(warehouses: filteredWarehouses);
+
+                    //   return WarehouseListWidget(warehouses: state.warehouses);
                   } else if (state is WarehouseError) {
                     return Center(child: Text('Error: ${state.message}'));
                   }
